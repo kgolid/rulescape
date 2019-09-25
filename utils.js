@@ -23,6 +23,6 @@ function difference(setA, setB) {
   return _difference;
 }
 
-const coinflip = () => Math.random() < 0.5;
+const coinflip = prob => Math.random() < prob;
 
 export { newArray, union, difference, coinflip };

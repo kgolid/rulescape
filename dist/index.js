@@ -28,16 +28,31 @@
     return _difference;
   }
 
-  const coinflip = () => Math.random() < 0.5;
+  const coinflip = prob => Math.random() < prob;
 
-  const blackSquareRule = [
-    { x: 0, y: 0, c: 1 },
-    { x: 0, y: 1, c: 1 },
-    { x: 1, y: 0, c: 1 },
+  const whiteCornerRule1 = [
+    { x: 0, y: 1, c: 0 },
+    { x: 1, y: 0, c: 0 },
     { x: 1, y: 1, c: 1 }
   ];
+  const whiteCornerRule2 = [
+    { x: 0, y: 0, c: 0 },
+    { x: 1, y: 0, c: 1 },
+    { x: 1, y: 1, c: 0 }
+  ];
+  const whiteCornerRule3 = [
+    { x: 0, y: 0, c: 0 },
+    { x: 0, y: 1, c: 1 },
+    { x: 1, y: 1, c: 0 }
+  ];
 
-  const absoluteRules = [blackSquareRule];
+  const absoluteRules = [
+    whiteCornerRule1,
+    whiteCornerRule2,
+    whiteCornerRule3
+    //whiteCornerRule4,
+    //blackSquareRule
+  ];
 
   const ruleWithOffset = (rule, xoff, yoff) =>
     rule.map(cell => ({ x: cell.x - xoff, y: cell.y - yoff, c: cell.c }));
@@ -52,9 +67,9 @@
   let nbrhood;
 
   let sketch = function(p) {
-    const xdim = 160;
-    const ydim = 160;
-    const cdim = 5;
+    const xdim = 250;
+    const ydim = 250;
+    const cdim = 3;
 
     p.setup = function() {
       p.createCanvas(800, 800);
@@ -66,10 +81,11 @@
 
       picks = new Set();
       nbrhood = new Set([grid[~~(ydim / 2)][~~(xdim / 2)]]);
+      //nbrhood = new Set([grid[0][0]]);
     };
 
     p.draw = function() {
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 300; i++) {
         step();
       }
       drawGrid();
@@ -85,7 +101,8 @@
     function drawGrid() {
       grid.forEach(row =>
         row.forEach(cell => {
-          p.fill(cell.c < 0 ? 180 : (1 - cell.c) * 255);
+          if (cell.c < 0) p.fill(255, 0, 0);
+          else p.fill((1 - cell.c) * 255);
           p.rect(cell.x * cdim, cell.y * cdim, cdim, cdim);
         })
       );
@@ -99,7 +116,10 @@
 
   function pickFromNeighborhood(nbrhood) {
     const i = Math.floor(Math.random() * nbrhood.size);
-    return Array.from(nbrhood)[i];
+    const arr = Array.from(nbrhood);
+    //arr.sort((a, b) => (a.y - b.y != 0 ? a.y - b.y : a.x - b.x));
+    //arr.sort((a, b) => a.x + a.y - (b.x - a.y));
+    return arr[i];
   }
 
   function determineCellCol(cell, grid) {
@@ -108,7 +128,7 @@
     cell.c = 1;
     const blackOk = !matchesPatterns(cell.x, cell.y, grid);
 
-    if (whiteOk && blackOk) return coinflip() ? 1 : 0;
+    if (whiteOk && blackOk) return coinflip(cell.y / grid.length) ? 1 : 0;
     if (whiteOk) return 0;
     if (blackOk) return 1;
     return -1; // No color option match the pattern.
